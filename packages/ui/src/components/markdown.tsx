@@ -1,36 +1,41 @@
 'use client';
 
 import clsx from 'clsx';
+import type { Html, Parent } from 'mdast';
 import { useTheme } from 'next-themes';
-import { useState } from 'react';
+import { useState, type Ref } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import rehypeRaw from 'rehype-raw';
+import rehypeSanitize from 'rehype-sanitize';
 import remarkGfm from 'remark-gfm';
-import type { Transformer } from 'unified';
+import type { Plugin } from 'unified';
 import { SKIP, visit, type BuildVisitor } from 'unist-util-visit';
+import { Check, Copy } from '../icons';
 import { vs } from '../themes/vs';
 import { vscDarkPlus } from '../themes/vs-dark-plus';
-import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip';
 import { Button } from './button';
-import { Check, Copy } from '../icons';
-// import rehypeRaw from 'rehype-raw';
+import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip';
+import { userMentions } from './utils/mentions';
 
 const HTML_COMMENT_REGEX = new RegExp('<!--([\\s\\S]*?)-->', 'g');
 
 /**
  * Remove HTML comments from Markdown
  */
-function removeHtmlComments(): Transformer {
+function removeHtmlComments(): Plugin {
   return (tree) => {
     // TODO: PRs are welcomed to fix the any type
-    // eslint-disable-next-line
-    const handler: BuildVisitor<any> = (node, index, parent) => {
+    const handler: BuildVisitor<Html> = (node, index, parent) => {
       const isComment = node.value.match(HTML_COMMENT_REGEX);
 
-      if (isComment) {
-        // remove node
-        parent.children.splice(index, 1);
-        // Do not traverse `node`, continue at the node *now* at `index`. http://unifiedjs.com/learn/recipe/remove-node/
+      if (
+        isComment &&
+        typeof index === 'number' &&
+        parent &&
+        Array.isArray((parent as Parent).children)
+      ) {
+        (parent as Parent).children.splice(index, 1);
         return [SKIP, index];
       }
     };
@@ -42,9 +47,19 @@ function removeHtmlComments(): Transformer {
   };
 }
 
-export function Markdown({ children, className }: { children: string; className?: string }) {
-  const { theme } = useTheme();
-  const syntaxHighlighterTheme = theme === 'light' ? vs : vscDarkPlus;
+export function Markdown({
+  children,
+  className,
+  disableMentions = false,
+  disableCopy = false,
+}: {
+  children: string;
+  className?: string;
+  disableMentions?: boolean;
+  disableCopy?: boolean;
+}) {
+  const { resolvedTheme } = useTheme();
+  const syntaxHighlighterTheme = resolvedTheme === 'light' ? vs : vscDarkPlus;
 
   return (
     <ReactMarkdown
@@ -72,13 +87,26 @@ export function Markdown({ children, className }: { children: string; className?
         p: ({ className, ...props }) => (
           <p className={clsx(className, 'mb-4 overflow-hidden text-ellipsis')} {...props} />
         ),
-        code({ inline, className, children, style: _, ...props }) {
+        blockquote: ({ className, ...props }) => (
+          <blockquote
+            className={clsx(
+              className,
+              'mx-0 my-[10px] border-l-8 border-gray-400 bg-zinc-200 px-2 py-[10px] dark:border-gray-200 dark:bg-zinc-700 ',
+            )}
+            {...props}
+          />
+        ),
+        code({ className, children, style: _, ref, ...props }) {
           const match = /language-(\w+)/.exec(className || '');
-          return !inline && match ? (
+          return match ? (
             <div className="relative">
-              <CopyButton text={String(children).replace(/\n$/, '')} />
+              {!disableCopy ? <CopyButton text={String(children).replace(/\n$/, '')} /> : null}
               <SyntaxHighlighter
-                PreTag="section" // parent tag
+                ref={ref as Ref<SyntaxHighlighter> | undefined}
+                // TODO: react-syntax-highlighter is not react 19 compatible yet.
+                // ref: https://github.com/react-syntax-highlighter/react-syntax-highlighter/issues/581
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                PreTag={'section' as any} // parent tag
                 className={clsx(className, 'rounded-xl dark:rounded-md')}
                 language={match[1]}
                 style={syntaxHighlighterTheme} // theme
@@ -107,10 +135,9 @@ export function Markdown({ children, className }: { children: string; className?
         details: ({ ...props }) => <details {...props} />,
         summary: ({ ...props }) => <summary {...props} />,
       }}
-      // FIXME: this is vuln to XSS and I don't know why we use it, let's remove it
-      // or add in a sanitizer lib like: https://github.com/rehypejs/rehype-sanitize
-      // rehypePlugins={[rehypeRaw as any]}
-      remarkPlugins={[removeHtmlComments, remarkGfm]}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      rehypePlugins={[rehypeRaw as any, rehypeSanitize]}
+      remarkPlugins={[removeHtmlComments, remarkGfm, ...(disableMentions ? [] : [userMentions])]}
     >
       {children}
     </ReactMarkdown>

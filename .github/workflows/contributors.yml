@@ -3,7 +3,7 @@ name: Contributors
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * 0'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,21 +21,23 @@ jobs:
       contents: write
       pull-requests: write
     env:
-      GITHUB_TOKEN: ${{ secrets.TOKEN }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install
         uses: ./tooling/github-actions/install
 
       - name: Run contributors script
-        run: turbo dl-git
+        run: npx tsx tooling/scripts/contributors.ts
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
           commit-message: 'chore: update contributors'
+          committer: GitHub <noreply@github.com>
+          author: GitHub <noreply@github.com>
           title: 'chore: update contributors'
           branch: chore/update-contributors
           base: main

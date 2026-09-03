@@ -1,9 +1,8 @@
 import { ImageResponse } from '@vercel/og';
-// import { fetchFont } from 'utils/fetchFont';
+
 export const runtime = 'edge';
 
 export async function GET() {
-  // const [inter700] = await Promise.all([fetchFont('Inter', 700)]);
   return new ImageResponse(
     (
       <div tw="relative flex flex-col">

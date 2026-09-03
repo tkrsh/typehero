@@ -1,9 +1,9 @@
-/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @next/next/no-img-element -- Intentionally using native elements for og: */
 'use client';
 
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
-import { challengeParam, userParam } from 'utils/zodParams';
+import { challengeParam, userParam } from '@repo/og-utils';
 import './app.css';
 
 const ogImageUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/api/landing` : '';
@@ -65,6 +65,10 @@ export default function Page() {
         <div>
           <h2>Aot 2023</h2>
           <img alt="aot-2023 metadata" src="/api/aot-2023" />
+        </div>
+        <div>
+          <h2>Aot 2024</h2>
+          <img alt="aot-2024 metadata" src="/api/aot-2024" />
         </div>
       </main>
     </div>

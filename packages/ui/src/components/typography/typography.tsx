@@ -1,5 +1,5 @@
-import React from 'react';
 import { cva } from 'class-variance-authority';
+import React, { type JSX } from 'react';
 import { cn } from '../../cn';
 
 export type Intent = 'body' | 'h1' | 'h2' | 'h3' | 'leading' | 'title';
@@ -9,6 +9,7 @@ export interface TextProps<T extends TagOptions = 'text'> {
   weight?: 'bold' | 'default' | 'medium' | 'semi';
   color?: 'default' | 'primary';
   tag?: T;
+  className?: string;
 }
 
 export type TagOptions = keyof JSX.IntrinsicElements;
@@ -89,7 +90,7 @@ export function Text<T extends TagOptions>({
     }
   }
 
-  const Tag = tagStr as string;
+  const Tag = tagStr as unknown as JSX.ElementType;
 
   return (
     <Tag className={cn(styles({ intent, weight, color }), className)} {...props}>

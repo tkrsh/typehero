@@ -1,6 +1,8 @@
-const { fontFamily } =
-  // eslint-disable-next-line
-  require('tailwindcss/defaultTheme') as typeof import('tailwindcss/defaultTheme');
+import containerQueries from '@tailwindcss/container-queries';
+import typography from '@tailwindcss/typography';
+import { fontFamily } from 'tailwindcss/defaultTheme';
+
+import animate from 'tailwindcss-animate';
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -76,9 +78,5 @@ module.exports = {
       },
     },
   },
-  plugins: [
-    require('tailwindcss-animate'),
-    require('@tailwindcss/typography'),
-    require('@tailwindcss/container-queries'),
-  ],
+  plugins: [animate, typography, containerQueries],
 };

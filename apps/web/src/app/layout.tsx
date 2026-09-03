@@ -1,16 +1,11 @@
 import { Toaster } from '@repo/ui/components/toaster';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Inter } from 'next/font/google';
 import { Navigation } from '~/components/Navigation';
-import { getStaticParams } from '~/locales/server';
 import '../styles/globals.css';
-import { Providers } from './[locale]/providers';
 import { OG_URL, tagline } from './metadata';
-import { ContextProviders } from './[locale]/context-providers';
-
-export function generateStaticParams() {
-  return getStaticParams();
-}
+import { Providers } from './providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -64,13 +59,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${inter.className} flex flex-col`}>
         <Providers>
-          <ContextProviders>
-            <Navigation />
-            {children}
-            <Toaster />
-          </ContextProviders>
+          <Navigation />
+          <main className="flex-1">{children}</main>
+          <Toaster />
         </Providers>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

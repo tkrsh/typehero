@@ -2,6 +2,8 @@ import { Button } from '@repo/ui/components/button';
 import { SearchIcon } from '@repo/ui/icons';
 
 function isMacOS() {
+  // TODO: Use a package or some such
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   return navigator.platform.toLowerCase().includes('mac');
 }
 
@@ -22,7 +24,7 @@ export default function SearchBar({ setOpen }: { setOpen: (v: boolean) => void }
       {/* Desktop Bar */}
       <Button
         variant="outline"
-        className="text-muted-foreground hidden w-64 justify-between gap-3 text-sm lg:inline-flex"
+        className="text-muted-foreground mr-2 hidden w-64 justify-between gap-3 text-sm lg:inline-flex"
         onClick={() => setOpen(true)}
       >
         <SearchIcon />
